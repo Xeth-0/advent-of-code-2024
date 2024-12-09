@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
-	day6()
+	// DISABLE LOGGER FOR THE ACTUAL TEST. Too large, will end up logging >50mbs of unintelligible maps.
+
+	day6( "../input/input.example.txt", true)
+	// day6( "../input/input.txt", false)
 }
 
 type Guard struct {
@@ -22,7 +25,7 @@ type Vector struct {
 	y int
 }
 
-func day6() {
+func day6(filePath string, loggerActive bool) {
 	// Set up logging
 	logFile, err := os.OpenFile("app.log", os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -31,12 +34,8 @@ func day6() {
 	defer logFile.Close()
 	log.SetOutput(logFile)
 
+	
 	// Reading the input
-	filePath := "../input/input.example.txt"
-
-	// DISABLE LOGGER FOR THE ACTUAL TEST. Too large, will end up logging >50mbs of unintelligible maps.
-	loggerActive := true
-
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal("file not found")
