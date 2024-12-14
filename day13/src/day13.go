@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	// "strconv"
 )
 
 type Vector struct {
