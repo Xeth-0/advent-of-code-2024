@@ -6,6 +6,9 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	// "advent2024/tui"
+	// tea "github.com/charmbracelet/bubbletea"
 )
 
 func day12(filePath string) {
@@ -21,7 +24,9 @@ func day12(filePath string) {
 		buffer = append(buffer, line)
 	}
 
-	regions, coordinateRegions := findRegions(buffer)
+	regions, coordinateRegions := findRegions(buffer, func(s string) {
+		// p.Send(tui.UpdateViewport(s, 100))
+	})
 	plotGarden(buffer)
 
 	// Part one: PRICE
@@ -31,9 +36,11 @@ func day12(filePath string) {
 	// Part Two : Discount on perimeter
 	price = price_partTwo(regions, coordinateRegions)
 	fmt.Println("PART-TWO: ", price)
+
 }
 
 func price_partOne(regions [][]Vector, coordRegions map[Vector]int) int {
+
 	price := 0
 	for _, region := range regions {
 		area := len(region)
@@ -57,7 +64,7 @@ func price_partTwo(regions [][]Vector, coordRegions map[Vector]int) int {
 	return price
 }
 
-func findRegions(board [][]string) (regions [][]Vector, coordRegions map[Vector]int) {
+func findRegions(board [][]string, callback func(string)) (regions [][]Vector, coordRegions map[Vector]int) {
 	regions = make([][]Vector, 0)
 	coordRegions = make(map[Vector]int)
 
@@ -91,14 +98,15 @@ func findRegions(board [][]string) (regions [][]Vector, coordRegions map[Vector]
 			for _, pos := range region {
 				coordRegions[pos] = len(regions)
 			}
-			// plotGarden(buffer, coordinateRegions)
+			s := plotGarden(board)
+			callback(s)
 		}
 	}
 
 	return regions, coordRegions
 }
 
-func plotGarden(gardenMap [][]string) {
+func plotGarden(gardenMap [][]string) string {
 	gardenViz := make([]string, 0)
 	gardenViz = append(gardenViz, "+", strings.Repeat("-", len(gardenMap[0])*2)+" +")
 	for _, row := range gardenMap {
@@ -111,9 +119,13 @@ func plotGarden(gardenMap [][]string) {
 	}
 	gardenViz = append(gardenViz, "+", strings.Repeat("-", len(gardenMap[0])*2)+" +")
 
+	s := ""
 	for _, line := range gardenViz {
+		s += line + "\n"
 		log.Println(line)
 	}
+
+	return s
 }
 
 func perimeter(regionCoordinates map[Vector]int, region []Vector) int {
