@@ -1,106 +1,87 @@
 package main
 
-// Too many imports, ik.
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 )
 
-type Vector struct {
-	x int
-	y int
-}
-
-func main() {
-	// Parse args
-	runExampleInputFlag := flag.Bool("e", true, "run the example input or the test input")
-	loggingActiveFlag := flag.Bool("l", false, "logging active or not")
-
-	flag.Parse()
-
-	runExampleInput := *runExampleInputFlag
-	loggingActive := *loggingActiveFlag
-
-	// Set up logger
-	if loggingActive || runExampleInput {
-		// Set log file
-		logFile, err := os.OpenFile("app.log", os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			log.Fatalf("Failed to open log file: %v", err)
-		}
-		defer logFile.Close()
-
-		log.SetOutput(logFile)
-	}
-	log.SetFlags(0)
-
-	var filePath string
-	if !runExampleInput {
-		fmt.Println("Running Test input...")
-		filePath = "../input/input.txt"
-	} else {
-		fmt.Println("Running Example input...")
-		filePath = "../input/input.example.txt"
-	}
-
-	day12(filePath)
-}
-
 func day12(filePath string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatalf("error reading input file: %v", err)
 	}
-	scanner := bufio.NewScanner(file)
 
+	scanner := bufio.NewScanner(file)
 	buffer := make([][]string, 0, 1024)
-	// Simply reading the input. No transformations for this stage
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), "")
 		buffer = append(buffer, line)
 	}
-	fmt.Println("Original Input: ", buffer)
-	coordinateRegions := make(map[Vector]int)
-	plotGarden(buffer, coordinateRegions)
 
-	// AREA - seems to just be the count of garden plots (letters in contiguous space)
-	// PERIMETER - more annoying to do. is the actual perimeter. 2*(x2-x1 + y2-y1)
-	regions := make([][]Vector, 0)
+	regions, coordinateRegions := findRegions(buffer)
+	plotGarden(buffer)
+
+	// Part one: PRICE
+	price := price_partOne(regions, coordinateRegions)
+	fmt.Println("PART-ONE: ", price)
+
+	// Part Two : Discount on perimeter
+	price = price_partTwo(regions, coordinateRegions)
+	fmt.Println("PART-TWO: ", price)
+}
+
+func price_partOne(regions [][]Vector, coordRegions map[Vector]int) int {
+	price := 0
+	for _, region := range regions {
+		area := len(region)
+		per := perimeter(coordRegions, region)
+
+		price += area * per
+	}
+
+	return price
+}
+
+func price_partTwo(regions [][]Vector, coordRegions map[Vector]int) int {
+	price := 0
+	for _, region := range regions {
+		area := len(region)
+		per := perimeter2(coordRegions, region)
+
+		price += area * per
+	}
+
+	return price
+}
+
+func findRegions(board [][]string) (regions [][]Vector, coordRegions map[Vector]int) {
+	regions = make([][]Vector, 0)
+	coordRegions = make(map[Vector]int)
+
 	visited := make(map[Vector]bool)
-	for i, row := range buffer {
+	for i, row := range board {
 		for j, plot := range row {
 			coordinate := Vector{x: j, y: i}
-
-			// I need to find the coordinates for that region. assign them to that region.
-			// If the current coordinate has a region, not do it at all
 			if visited[coordinate] {
 				continue
 			}
-
-			// DFS to find neighboring plots of this new region.
-			// visited := make(map[Vector]bool)
 			region := make([]Vector, 0, 1)
 			stack := []Vector{coordinate}
 
 			for len(stack) > 0 {
 				pos := stack[len(stack)-1]
 				stack = stack[:len(stack)-1]
-
-				// if visited, it already has a region. continue.
 				if visited[pos] {
 					continue
 				}
-
-				// coordinateRegions[pos] = plot
 				visited[pos] = true
 				region = append(region, pos)
 
 				for _, neighbor := range pos.neighbors() {
-					if neighbor.inBounds(len(row), len(buffer)) && !visited[neighbor] && buffer[neighbor.y][neighbor.x] == plot {
+					if neighbor.inBounds(len(row), len(board)) && !visited[neighbor] && board[neighbor.y][neighbor.x] == plot {
 						stack = append(stack, neighbor)
 					}
 				}
@@ -108,35 +89,31 @@ func day12(filePath string) {
 
 			regions = append(regions, region)
 			for _, pos := range region {
-				coordinateRegions[pos] = len(regions)
+				coordRegions[pos] = len(regions)
 			}
 			// plotGarden(buffer, coordinateRegions)
 		}
 	}
-	fmt.Println(regions)
 
-	// Part one: PRICE
-	price := 0
-	for _, region := range regions {
-		area := len(region)
-		per := perimeter(coordinateRegions, region)
+	return regions, coordRegions
+}
 
-		price += area * per
-		// log.Println("REGION: ", buffer[region[0].y][region[0].x], " Perimeter: ", per, "Area: ", area, " Price: ")
+func plotGarden(gardenMap [][]string) {
+	gardenViz := make([]string, 0)
+	gardenViz = append(gardenViz, "+", strings.Repeat("-", len(gardenMap[0])*2)+" +")
+	for _, row := range gardenMap {
+		out := "|  "
+		for _, plot := range row {
+			out += plot + " "
+		}
+		gardenViz = append(gardenViz, out+"|")
+		gardenViz = append(gardenViz, "|"+strings.Repeat(" ", len(gardenMap[0])*2+2)+"|")
 	}
-	fmt.Println("PART-ONE: ", price)
+	gardenViz = append(gardenViz, "+", strings.Repeat("-", len(gardenMap[0])*2)+" +")
 
-	// Part Two : Discount on perimeter
-	price = 0
-	for _, region := range regions {
-		area := len(region)
-		per := perimeter2(coordinateRegions, region)
-
-		price += area * per
-		log.Println("REGION: ", buffer[region[0].y][region[0].x], " Perimeter: ", per, "Area: ", area, " Price: ")
+	for _, line := range gardenViz {
+		log.Println(line)
 	}
-	fmt.Println("PART-TWO: ", price)
-
 }
 
 func perimeter(regionCoordinates map[Vector]int, region []Vector) int {
@@ -197,54 +174,4 @@ func perimeter2(regionCoordinates map[Vector]int, region []Vector) int {
 		}
 	}
 	return perimeter
-}
-
-func (vec Vector) neighbors() []Vector {
-	return []Vector{
-		vec.up(),
-		vec.left(),
-		vec.down(),
-		vec.right(),
-	}
-}
-
-func (vec Vector) down() Vector {
-	vec.y += 1
-	return vec
-}
-func (vec Vector) up() Vector {
-	vec.y -= 1
-	return vec
-}
-func (vec Vector) right() Vector {
-	vec.x += 1
-	return vec
-}
-func (vec Vector) left() Vector {
-	vec.x -= 1
-	return vec
-}
-func (vec Vector) inBounds(xBounds int, yBounds int) bool {
-	if vec.x < 0 || vec.y < 0 || vec.x >= xBounds || vec.y >= yBounds {
-		return false
-	}
-	return true
-}
-
-func plotGarden(gardenMap [][]string, regionCoordinates map[Vector]int) {
-	gardenViz := make([]string, 0)
-	gardenViz = append(gardenViz, "+", strings.Repeat("-", len(gardenMap[0])*2)+" +")
-	for _, row := range gardenMap {
-		out := "|  "
-		for _, plot := range row {
-			out += plot + " "
-		}
-		gardenViz = append(gardenViz, out+"|")
-		gardenViz = append(gardenViz, "|"+strings.Repeat(" ", len(gardenMap[0])*2+2)+"|")
-	}
-	gardenViz = append(gardenViz, "+", strings.Repeat("-", len(gardenMap[0])*2)+" +")
-
-	for _, line := range gardenViz {
-		log.Println(line)
-	}
 }
