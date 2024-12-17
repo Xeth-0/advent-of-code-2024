@@ -1,5 +1,8 @@
 package tui
 
+// Slightly modified version of tui example code from the package docs. (bubbles/viewport)
+// Keeping comments as is, just in case i need to change/debug sth.
+
 import (
 	"fmt"
 	"strings"
@@ -49,7 +52,7 @@ type Model struct {
 	viewport viewport.Model
 }
 
-func (m *Model) SetTitle(title string){
+func (m *Model) SetTitle(title string) {
 	m.title = title
 }
 
@@ -68,12 +71,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
 			return m, tea.Quit
 		}
+	
 	case updateViewportMsg:
+		// Custom update message. This is what it listens to to update the 
+		// viewport contents.
 		if m.ready {
 			m.viewport.SetContent(msg.content)
 			// m.viewport.Width = msg.width
 		}
-
 	case tea.WindowSizeMsg:
 		headerHeight := lipgloss.Height(m.headerView())
 		footerHeight := lipgloss.Height(m.footerView())

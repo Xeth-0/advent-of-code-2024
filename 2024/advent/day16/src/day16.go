@@ -94,7 +94,7 @@ func solve(grid [][]string, startPos Vector, endPos Vector, isExampleInput bool)
 
 			// Update the visualizer. This will heavily slow down the program, so it's only going to run for the example input.
 			if isExampleInput {
-				s := fmt.Sprintf("Grid\nCost: %d\n", current.cost) + plotMap(grid)
+				s := fmt.Sprintf("Cost: %d\n", current.cost) + plotMap(grid)
 				p.Send(tui.UpdateViewport(s, 1000))
 				time.Sleep(10 * time.Millisecond) // just so i can keep up and see what's happening
 			}
@@ -133,16 +133,16 @@ func solve(grid [][]string, startPos Vector, endPos Vector, isExampleInput bool)
 		onBestPath := make(map[Vector]bool)
 		for _, node := range paths {
 			for node.parent != nil {
-				if !onBestPath[node.pos] {
-					nodesOnBestPath++
-					onBestPath[node.pos] = true
-				}
 				grid[node.pos.Y][node.pos.X] = tui.BoxStyle.Render("0")
 				node = node.parent
 
-				if isExampleInput { // Again, very slow on the test input. better to just render the final version.
-					p.Send(tui.UpdateViewport("Tagging nodes on best paths...\n"+plotMap(grid), 100))
-					time.Sleep(100 * time.Millisecond)
+				if !onBestPath[node.pos] {
+					nodesOnBestPath++
+					onBestPath[node.pos] = true
+					// if isExampleInput { // Again, very slow on the test input. better to just render the final version.
+						p.Send(tui.UpdateViewport("Tagging nodes on best paths...\n*maybe zoom out if the graph is too big: 'ctrl+-'\n"+plotMap(grid), 100))
+						time.Sleep(10 * time.Millisecond)
+					// }
 				}
 			}
 		}
@@ -151,7 +151,7 @@ func solve(grid [][]string, startPos Vector, endPos Vector, isExampleInput bool)
 		s := fmt.Sprintf("Best Path Cost: %d\n", bestPathCost)
 		s += fmt.Sprintf("Nodes on best paths: %d\n", nodesOnBestPath)
 		s += plotMap(grid)
-		s+="\nPress 'q' or 'ctrl+c' or 'esc' to exit..."
+		s += "\nPress 'q' or 'ctrl+c' or 'esc' to exit..."
 
 		p.Send(tui.UpdateViewport(s, 2*len(grid[0]))) // Update the terminal ui.
 	}()
@@ -190,27 +190,23 @@ func readInput(filePath string) ([][]string, Vector, Vector) {
 }
 
 func plotMap(givenMap [][]string) string {
-	s := ""
+	// strings.Builder is more efficient than simple concatenation, massive speedup using this instead.
+	var builder strings.Builder
+
 	for _, row := range givenMap {
 		for _, c := range row {
 			switch c {
 			case wall:
-				s += tui.WallStyle.Render(wall)
-			case robotUp:
-				s += tui.RobotStyle.Render(robotUp)
-			case robotLeft:
-				s += tui.RobotStyle.Render(robotLeft)
-			case robotDown:
-				s += tui.RobotStyle.Render(robotDown)
-			case robotRight:
-				s += tui.RobotStyle.Render(robotRight)
+				builder.WriteString(tui.WallStyle.Render(wall))
+			case robotUp, robotDown, robotLeft, robotRight:
+				builder.WriteString(tui.RobotStyle.Render(c))
 			default:
-				s += c
+				builder.WriteString(c)
 			}
 		}
-		s += "\n"
+		builder.WriteByte('\n')
 	}
-	return s
+	return builder.String()
 }
 
 // Returns the immediate the robot can visit. Direction matters. (Can only rotate once counter/clockwise as well)
