@@ -72,6 +72,7 @@ func solve(grid [][]string, startPos Vector, endPos Vector, isExampleInput bool)
 	)
 
 	go func() {
+
 		// Going to use UCS. Thought about A*, but it seems like UCS would be the better choice here.
 		paths := make([]*Node, 0)
 		bestPathCost := math.MaxInt
@@ -139,10 +140,12 @@ func solve(grid [][]string, startPos Vector, endPos Vector, isExampleInput bool)
 				if !onBestPath[node.pos] {
 					nodesOnBestPath++
 					onBestPath[node.pos] = true
+
 					// if isExampleInput { // Again, very slow on the test input. better to just render the final version.
-						p.Send(tui.UpdateViewport("Tagging nodes on best paths...\n*maybe zoom out if the graph is too big: 'ctrl+-'\n"+plotMap(grid), 100))
-						time.Sleep(10 * time.Millisecond)
+					p.Send(tui.UpdateViewport("Tagging nodes on best paths...\n*maybe zoom out if the graph is too big: 'ctrl+-'\n"+plotMap(grid), 100))
+					time.Sleep(10 * time.Millisecond)
 					// }
+
 				}
 			}
 		}
