@@ -6,9 +6,6 @@ import (
 	"log"
 	"os"
 	"strings"
-
-	// "advent2024/tui"
-	// tea "github.com/charmbracelet/bubbletea"
 )
 
 func day12(filePath string) {

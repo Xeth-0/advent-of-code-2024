@@ -2,7 +2,7 @@ package main
 
 // Too many imports, ik.
 import (
-	"advent2024/tui"
+	"advent2024/utils/tui"
 	"bufio"
 	"flag"
 	"fmt"
@@ -11,15 +11,8 @@ import (
 	"strings"
 	"time"
 
-	// "time"
-
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
-
-var robotStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#0000FF"))
-var wallStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000"))
-var boxStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#A0AA00"))
 
 type Vector struct {
 	x int
@@ -38,7 +31,6 @@ var (
 	empty2 = ".."
 	wall2  = "##"
 )
-var sth = time.Duration(100)
 
 type Board struct {
 	grid          [][]string
@@ -396,11 +388,11 @@ func plotMap(givenMap [][]string) string {
 		for _, c := range row {
 			switch c {
 			case wall:
-				s += wallStyle.Render(wall) + " "
+				s += tui.WallStyle.Render(wall) + " "
 			case robot:
-				s += robotStyle.Render(robot) + " "
+				s += tui.RobotStyle.Render(robot) + " "
 			case box:
-				s += boxStyle.Render(box) + " "
+				s += tui.BoxStyle.Render(box) + " "
 			default:
 				s += c + " "
 			}

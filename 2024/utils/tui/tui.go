@@ -43,9 +43,14 @@ type updateViewportMsg struct {
 }
 
 type Model struct {
+	title    string
 	content  string
 	ready    bool
 	viewport viewport.Model
+}
+
+func (m *Model) SetTitle(title string){
+	m.title = title
 }
 
 func (m Model) Init() tea.Cmd {
@@ -66,6 +71,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case updateViewportMsg:
 		if m.ready {
 			m.viewport.SetContent(msg.content)
+			// m.viewport.Width = msg.width
 		}
 
 	case tea.WindowSizeMsg:
@@ -119,7 +125,7 @@ func (m Model) View() string {
 }
 
 func (m Model) headerView() string {
-	title := titleStyle.Render("Mr. Pager")
+	title := titleStyle.Render("AOC 2024")
 	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(title)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
