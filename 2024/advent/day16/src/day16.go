@@ -72,7 +72,6 @@ func solve(grid [][]string, startPos Vector, endPos Vector, isExampleInput bool)
 	)
 
 	go func() {
-
 		// Going to use UCS. Thought about A*, but it seems like UCS would be the better choice here.
 		paths := make([]*Node, 0)
 		bestPathCost := math.MaxInt
