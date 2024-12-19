@@ -52,6 +52,13 @@ type Model struct {
 	viewport viewport.Model
 }
 
+func NewModel(title string) Model {
+	return Model{
+		title:   title,
+		content: "",
+	}
+}
+
 func (m *Model) SetTitle(title string) {
 	m.title = title
 }
@@ -71,9 +78,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
 			return m, tea.Quit
 		}
-	
+
 	case updateViewportMsg:
-		// Custom update message. This is what it listens to to update the 
+		// Custom update message. This is what it listens to to update the
 		// viewport contents.
 		if m.ready {
 			m.viewport.SetContent(msg.content)
@@ -130,7 +137,7 @@ func (m Model) View() string {
 }
 
 func (m Model) headerView() string {
-	title := titleStyle.Render("AOC 2024")
+	title := titleStyle.Render(fmt.Sprintf("AOC 2024 - %s", m.title))
 	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(title)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
