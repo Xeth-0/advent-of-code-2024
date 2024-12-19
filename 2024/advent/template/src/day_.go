@@ -2,11 +2,11 @@ package main
 
 // Too many imports, ik.
 import (
-	"os"
+	"bufio"
+	"flag"
 	"fmt"
 	"log"
-	"flag"
-	"bufio"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -42,10 +42,30 @@ func main() {
 		filePath = "../input/input.example.txt"
 	}
 
-	day12(filePath)
+	day12(filePath, 1, 2)
 }
 
-func day12(filePath string) {
+func day12(filePath string, parts ...int) {
+	readInput(filePath)
+	for _, part := range parts {
+		switch part {
+		case 1:
+			part1()
+		case 2:
+			part2()
+		}
+	}
+}
+
+func part1() {
+
+}
+
+func part2() {
+
+}
+
+func readInput(filePath string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatalf("error reading input file: %v", err)
@@ -66,5 +86,4 @@ func day12(filePath string) {
 		}
 	}
 	log.Println("Original Input: ", buffer)
-
 }
