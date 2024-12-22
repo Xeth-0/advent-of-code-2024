@@ -162,7 +162,7 @@ func part2(board Board) {
 
 			// Send the update to the viewport.
 			p.Send(tui.UpdateViewport(viewport, 1000))
-			time.Sleep(1 * time.Millisecond) // Sleeping for 1 millisec for brevity.
+			// time.Sleep(1 * time.Millisecond) // Sleeping for 1 millisec for brevity.
 
 			// Check if the shortest path is blocked.
 			shortestPath := findShortestPath(board)
@@ -179,6 +179,23 @@ func part2(board Board) {
 			p.Send(tui.UpdateViewport("No solution", 1000))
 			log.Fatal("no solution")
 		}
+
+		// Solution to the puzzle exists. Let's draw out the shortest path before that byte fell, draw the path, and mark the final byte
+		board.board[solution.Y][solution.X] = "." // remove that byte first
+		shortestPath := findShortestPath(board)   // find the shortest path
+		// Mark the path
+		for shortestPath.parent != nil {
+			board.board[shortestPath.pos.Y][shortestPath.pos.X] = tui.RobotStyle.Render("0")
+			shortestPath = *shortestPath.parent
+		}
+		board.board[shortestPath.pos.Y][shortestPath.pos.X] = tui.RobotStyle.Render("0") // Mark the start line as well.
+
+		// Mark the last fallen byte.
+		board.board[solution.Y][solution.X] = "@"
+
+		// Draw the board.
+		s := fmt.Sprintf("Solution: %d,%d\n\n%s", solution.X, solution.Y, plotBoard(board)) // construct the viewport
+		p.Send(tui.UpdateViewport(s, 1000))                                                 //draw the viewport
 
 	}()
 
